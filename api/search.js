@@ -34,11 +34,15 @@ module.exports = async (request, response) => {
     }
 
     // Extraction des paramètres 'query' et 'type'
-    const { query } = require('url').parse(request.url, true);
-    const searchTerm = query.query;
-    const contentType = query.type; // Ex: 'anime', 'game', 'movie'
+    const url = require('url');
+    const parsedUrl = url.parse(request.url, true);
+    const searchTerm = parsedUrl.query.query;
+    const contentType = parsedUrl.query.type; // Ex: 'anime', 'game', 'movie'
+
+    console.log('Paramètres reçus:', { searchTerm, contentType });
 
     if (!searchTerm || !contentType) {
+        console.log('Paramètres manquants:', { searchTerm, contentType });
         return response.status(400).json({
             status: 'error',
             message: 'Les paramètres de requête "query" et "type" sont obligatoires.'
@@ -56,17 +60,28 @@ module.exports = async (request, response) => {
                 query: ANILIST_SEARCH_QUERY,
                 variables: { search: searchTerm }
             });
+            console.log('Réponse AniList:', anilistResult.data);
             results = anilistResult.data.data.Page.media;
             source = 'AniList';
 
         } else if (contentType.toLowerCase() === 'game') {
             // TODO: Intégrer ici l'appel à l'API IGDB pour les jeux
-            results = [{ id: 0, title: { romaji: `Recherche de jeux pour: ${searchTerm}` }, message: "Intégration IGDB non implémentée, retourne un placeholder." }];
+            results = [{ 
+                id: 0, 
+                title: { romaji: `Recherche de jeux pour: ${searchTerm}` }, 
+                message: "Intégration IGDB non implémentée, retourne un placeholder.",
+                coverImage: { extraLarge: 'https://placehold.co/100x150/1f1f1f/aaaaaa?text=Game' }
+            }];
             source = 'Placeholder (Game)';
 
         } else if (contentType.toLowerCase() === 'film' || contentType.toLowerCase() === 'serie') {
             // TODO: Intégrer ici l'appel à l'API TMDB pour les films/séries
-            results = [{ id: 0, title: { romaji: `Recherche de films/séries pour: ${searchTerm}` }, message: "Intégration TMDB non implémentée, retourne un placeholder." }];
+            results = [{ 
+                id: 0, 
+                title: { romaji: `Recherche de films/séries pour: ${searchTerm}` }, 
+                message: "Intégration TMDB non implémentée, retourne un placeholder.",
+                coverImage: { extraLarge: 'https://placehold.co/100x150/1f1f1f/aaaaaa?text=Film' }
+            }];
             source = 'Placeholder (Film/Série)';
             
         } else {
